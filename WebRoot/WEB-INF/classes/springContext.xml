@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:tx="http://www.springframework.org/schema/tx" 
+	xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xmlns:aop="http://www.springframework.org/schema/aop" 
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:jee="http://www.springframework.org/schema/jee"
+	xsi:schemaLocation="http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.1.xsd
+		http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-4.1.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.1.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.1.xsd
+		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.1.xsd 
+		http://www.springframework.org/schema/jee http://www.springframework.org/schema/jee/spring-jee.xsd">    
+	
+	<!--
+		 ATTENTION!! 对于springMVC,要求配置子容器spring-servlet.xml用于配置@Controller
+		所以在这里忽略扫描Controller,特别要注意，子容器的扫描会覆盖掉父容器springContext.xml
+		的扫描配置所以在spring-servlet.xml中需要忽略扫描@Service，不然的话会覆盖掉父容器对
+		@Service的事务增强配置，导致事务无效...........................................
+	-->
+	<context:component-scan base-package="com">
+		<context:exclude-filter type="annotation" expression="org.springframework.stereotype.Controller" /> 
+	</context:component-scan> 
+	
+	<bean id="dataSource" class="org.logicalcobwebs.proxool.ProxoolDataSource">
+        
+        <property name="driver"><value>com.mysql.jdbc.Driver</value></property>
+	   
+	       <property name="driverUrl"><value>jdbc:mysql://localhost:3306/dutypad?characterEncoding=utf8&amp;zeroDateTimeBehavior=convertToNull&amp;autoReconnect=true</value></property>
+
+        <!-- 必须在这里也设置，但是 proxool却不使用它，或许是个bug-->
+        <property name="user"><value>root</value></property>
+        <property name="password"><value>root</value></property>
+       
+        <property name="alias"><value>dutypad</value></property>
+        
+        <!--保留线程处于睡眠状态的最长时间-->
+		<property name="houseKeepingSleepTime"><value>30000</value></property><!-- 默认 30000-->
+		<property name="houseKeepingTestSql"><value>select 1</value></property>
+		<!--可用的连接数量--> 
+        <property name="prototypeCount"><value>30</value></property>
+        <!--线程的最长活动时间-->
+        <property name="maximumActiveTime"><value>300000</value></property><!-- 默认 300000-->
+        <!--线程的最大寿命-->
+        <property name="maximumConnectionLifetime"><value>300000</value></property><!-- 默认 300000-->
+        <!--最大的数据库连接数-->
+        <property name="maximumConnectionCount"><value>40</value></property>
+        <!--最小的数据库连接数-->
+        <property name="minimumConnectionCount"><value>10</value></property>
+        <!-- 是否记录proxool日志 -->
+        <property name="trace"><value>true</value></property>
+        <property name="verbose"><value>true</value></property>
+    </bean>
+		<!-- 支持aop注解 -->
+	<aop:aspectj-autoproxy />	
+	<!-- 配置session工厂 -->
+	<bean id="sessionFactory" class="org.springframework.orm.hibernate4.LocalSessionFactoryBean">
+		<!-- 引用的数据湖 -->
+		<property name="dataSource" ref="dataSource" />
+		<property name="hibernateProperties">
+			<props>
+				<!-- 方言 -->
+				<prop key="hibernate.dialect">org.hibernate.dialect.MySQLDialect</prop>
+				<!-- session -->
+				<prop key="hibernate.current_session_context_class">org.springframework.orm.hibernate4.SpringSessionContext</prop>
+				<!-- 后台输出SQL语句 -->
+				<prop key="hibernate.show_sql">false</prop>
+				<!-- 后台输出SQL语句时格式化 -->
+				<prop key="hibernate.format_sql">true</prop>
+				<!-- 数据库表的操作 -->
+				<prop key="hibernate.hbm2ddl.auto">update</prop>
+				<!-- javax.persistence.validation.mode默认情况下是auto的，
+				就是说如果不设置的话它是会自动去你的classpath下面找一个bean-validation**包 
+          		所以把它设置为none即可 -->
+				<prop key="javax.persistence.validation.mode">none</prop>
+				<!--连接池释放-->
+				<prop key="hibernate.connection.release_mode">auto</prop>
+				<!-- 自动提交 -->
+				<prop key="hibernate.connection.autocommit">true</prop>
+			</props>
+		</property>
+		<!-- 自动扫描的包  这里的.*不是正则的.*，注意 -->
+		<property name="packagesToScan" value="com.dutypad.entity"/>
+	</bean>
+	
+	
+	
+	<!-- hibernate4 事务管理 -->
+	<bean id="transactionManager"
+		class="org.springframework.orm.hibernate4.HibernateTransactionManager">
+		<property name="sessionFactory" ref="sessionFactory" />
+	</bean>	
+	
+	<!-- 定义切面，* com.sql.homework.service.impl.*ServiceImpl.*(..) 中执行有关的hibernate session的事务操作 -->
+	<aop:config>
+		<aop:pointcut id="serviceOperation" expression="execution(* com.dutypad.service.impl.*.*(..))" />
+		<aop:advisor pointcut-ref="serviceOperation" advice-ref="txAdvice"  />
+	</aop:config>
+	<!-- 事务增强 ：设置只读事务等 -->
+	<tx:advice id="txAdvice" transaction-manager="transactionManager">
+	    <tx:attributes>
+	    <!-- 申明以get开头的方法为只读事务 -->
+			<tx:method name="get*" read-only="true" propagation="REQUIRED" />
+			<tx:method name="load*" read-only="true" propagation="REQUIRED"/>
+			<tx:method name="query*" read-only="true" propagation="REQUIRED"/>
+			<tx:method name="find*" read-only="true" propagation="REQUIRED"/>
+			<tx:method name="count*" read-only="true" propagation="REQUIRED"/>
+			<!-- 剩下的update save delete 使用事务, 抛出Exception异常，事务回滚，保证数据不被污染 -->
+			<tx:method name="*" propagation="REQUIRED" rollback-for="Exception"/>
+	    </tx:attributes>
+  	</tx:advice>
+	
+	
+</beans>

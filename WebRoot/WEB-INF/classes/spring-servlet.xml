@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:mvc="http://www.springframework.org/schema/mvc"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:context="http://www.springframework.org/schema/context"
+    xsi:schemaLocation="
+        http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd
+    	http://www.springframework.org/schema/context
+    	http://www.springframework.org/schema/context/spring-context.xsd
+        http://www.springframework.org/schema/mvc
+        http://www.springframework.org/schema/mvc/spring-mvc.xsd">
+	
+	
+	<context:annotation-config />  
+    <mvc:annotation-driven />
+	
+	<mvc:interceptors>  
+    <!-- 国际化操作拦截器 如果采用基于（请求/Session/Cookie）则必需配置 --> 
+    <bean class="org.springframework.web.servlet.i18n.LocaleChangeInterceptor" />  
+    <!-- 如果不定义 mvc:mapping path 将拦截所有的URL请求 -->
+    <bean class="com.dutypad.interceptor.AuthInterceptor"></bean>
+	</mvc:interceptors>
+	
+	<!-- 设置当前项目的根包 ，扫描有注解文件的包-->
+	<!--
+		ATTENTION!! 对于springMVC,要求配置子容器spring-servlet.xml用于配置@Controller
+		所以在这里忽略扫描Controller,特别要注意，子容器的扫描会覆盖掉父容器springContext.xml
+		的扫描配置所以在spring-servlet.xml中需要忽略扫描@Service，不然的话会覆盖掉父容器对
+		@Service的事务增强配置，导致事务无效...........................................
+	-->
+	<context:component-scan base-package="com"> 
+		<context:include-filter type="annotation" expression="org.springframework.stereotype.Controller" /> 
+		<context:exclude-filter type="annotation" expression="org.springframework.stereotype.Service" /> 
+	</context:component-scan>
+	
+	<!--mvc:annotation-driven就做了以下两件事-->
+    
+    
+    <!--解决中文乱码旧版在AnnotationMethodHandlerAdapter配置StringHttpMessageConverter和MappingJackson2HttpMessageConverter，
+    但是对于新版spring这是没用的，要在RequestMappingHandlerAdapter配置-->
+    <bean class="org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter">
+		<property name="messageConverters">
+			<list>
+				<bean class="org.springframework.http.converter.ByteArrayHttpMessageConverter" />
+				<bean class="org.springframework.http.converter.StringHttpMessageConverter">
+					<property name="writeAcceptCharset" value="false" />
+					<property name="supportedMediaTypes">
+						<list>
+							<value>text/plain;charset=UTF-8</value>
+							<value>*/*;charset=UTF-8</value>
+						</list>
+					</property>
+				</bean>
+				<bean id="mappingJacksonHttpMessageConverter"
+			        class="org.springframework.http.converter.json.MappingJackson2HttpMessageConverter">
+			        <property name="supportedMediaTypes">
+			       		<list>
+			          		  <value>text/html;charset=UTF-8</value>
+			       	 	</list>
+			    	</property>
+			    </bean>
+	 			<bean class="org.springframework.http.converter.xml.SourceHttpMessageConverter" />
+				<bean class="org.springframework.http.converter.support.AllEncompassingFormHttpMessageConverter" /> 
+			</list>
+		</property>
+	</bean> 
+	
+	
+	
+	 
+	<!-- 用于过滤静态文件如css js jpg png等 -->
+	<mvc:default-servlet-handler/>
+	
+	<!-- Spring MVC视图分解器 -->
+    <bean id="viewResolver" class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+    	<property name="prefix" value="/WEB-INF/jsp/"></property>
+    	<property name="suffix" value=".jsp"></property>
+    </bean>
+	
+	
+
+	<!-- 如果json返回乱码，就去改AnnotationMethodHandlerAdapter，因为@ResponseBody默认返回ISO-8859-1，可以看收藏那篇文章-->
+	
+	
+	
+
+	
+	
+	
+	
+	
+</beans>
+

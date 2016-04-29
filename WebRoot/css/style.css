@@ -1,0 +1,157 @@
+/*Pad*/
+
+html,
+body,
+#container,
+#Main {
+	height: 100%;
+	Font-family: Helvetica, Tahoma, Arial, STXihei, “华文细黑”, “Microsoft YaHei”, “微软雅黑”, sans-serif;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+	Font-family: Helvetica, Tahoma, Arial, STXihei, “华文细黑”, “Microsoft YaHei”, “微软雅黑”, sans-serif
+}
+
+#container {
+	/*background-image: url(../img/bg.jpg);*/
+	background-size: cover;
+}
+
+#Main {
+	margin-top: 60px;
+	background-color: white;
+}
+
+.attached.bottom {
+	background-color: inherit;
+}
+
+body {
+	overflow: auto;
+	margin: 0px;
+	padding: 0px;
+}
+
+body > #container {
+	height: auto;
+	min-height: 100%;
+}
+
+#footer {
+	clear: both;
+	position: relative;
+	z-index: 0;
+	height: 5em;
+	margin-top: 0em;
+	margin-bottom: 1em;
+	background: inherit;
+}
+
+.main.menu {
+	height: 5%;
+}
+
+.pusher {
+	height: 100%;
+}
+
+.progress-row {
+	margin-top: 10px;
+}
+
+#dutyDetail {
+	padding-right: 15%;
+}
+
+div.attached.segment {
+	border-bottom: 1px solid #D4D4D5;
+	border-left: 1px solid #D4D4D5;
+	border-right: 1px solid #D4D4D5;
+	padding-left: 1%;
+	padding-right: 1%;
+	padding-bottom: 1%;
+	margin-bottom: 10px;
+}
+
+.top-title {
+	/*margin-top: 10px;*/
+	/*margin-bottom: -15px;*/
+	border-bottom: 1px double darkgray;
+}
+
+.card-col {
+	margin-bottom: 10px;
+}
+
+.showSidebar {
+	float: left;
+	position: fixed;
+	top: 0px;
+}
+
+
+/* Login */
+
+.login-body {
+	background-color: #ecf0f1;
+	overflow: hidden;
+}
+
+.pad-col {
+	border: 0px solid black;
+	/*max-height: 200px;*/
+	overflow: auto;
+}
+
+body > .grid {
+	height: 100%;
+}
+
+.login-col {
+	max-width: 450px;
+}
+
+
+/* Times */
+
+.small.ui.progress {
+	margin-bottom: 0px;
+}
+
+
+/* manage */
+
+.pad0,
+.pad1,
+.pad2,
+.pad3,
+.pad4 {
+	padding-top: 20px;
+}
+
+
+/*文字自动省略*/
+
+.auto-hide {
+	/*width: 2em;*/
+	white-space: nowrap;
+	text-overflow: ellipsis;
+	-o-text-overflow: ellipsis;
+	overflow: hidden;
+}
+
+/*404 page*/
+#notfound-center {
+	background-color: silver;
+	padding-top: 50%;
+}
+
+/*奖惩详情*/
+.popup-hovor {
+	cursor: default;
+}
